@@ -11,7 +11,14 @@ export class AIService {
   private model: string = "gemini-3-flash-preview";
 
   constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+    const apiKey = 
+      process.env.GEMINI_API_KEY || 
+      process.env.GOOGLE_API_KEY || 
+      process.env.API_KEY || 
+      (import.meta as any).env?.VITE_GEMINI_API_KEY ||
+      (import.meta as any).env?.VITE_GOOGLE_API_KEY ||
+      "";
+    this.ai = new GoogleGenAI({ apiKey });
   }
 
   async askAboutMe(question: string) {
@@ -62,7 +69,7 @@ export class AIService {
       return response.text || "I'm sorry, I couldn't generate a response at this time.";
     } catch (error) {
       console.error("AI Service Error:", error);
-      return "I'm experiencing some technical difficulties. Please try again later or contact Alex directly.";
+      return "I'm experiencing some technical difficulties. Please try again later or contact Yang directly.";
     }
   }
 }

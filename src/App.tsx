@@ -277,21 +277,9 @@ const Experience = () => {
               className="group relative grid grid-cols-1 md:grid-cols-12 gap-8 p-8 rounded-3xl hover:bg-white/5 transition-all duration-500 border border-transparent hover:border-white/10"
             >
               <div className="md:col-span-4 flex flex-col gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden p-2">
-                    <img 
-                      src={exp.logo} 
-                      alt={exp.company} 
-                      className="w-full h-full object-contain filter grayscale group-hover:grayscale-0 transition-all"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${exp.company}&background=0D1117&color=fff&bold=true`;
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-black text-white group-hover:text-accent transition-colors">{exp.company}</div>
-                    <div className="text-slate-500 font-mono text-xs uppercase tracking-widest">{exp.period}</div>
-                  </div>
+                <div className="flex flex-col gap-2">
+                  <div className="text-3xl font-black text-white group-hover:text-accent transition-colors">{exp.company}</div>
+                  <div className="text-slate-300 font-bold text-sm uppercase tracking-widest">{exp.period}</div>
                 </div>
               </div>
               <div className="md:col-span-8">
@@ -420,7 +408,7 @@ const Skills = () => {
               <h4 className="text-xl font-bold mb-6">{cat.name}</h4>
               <div className="flex flex-wrap gap-2">
                 {cat.items.map(item => (
-                  <span key={item} className="px-3 py-1.5 rounded-lg bg-white/5 text-xs font-medium text-slate-400 border border-white/5">
+                  <span key={item} className="px-3 py-1.5 rounded-lg bg-white/5 text-sm font-medium text-slate-400 border border-white/5">
                     {item}
                   </span>
                 ))}
