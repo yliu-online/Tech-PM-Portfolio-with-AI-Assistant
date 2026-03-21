@@ -50,7 +50,6 @@ const Navbar = () => {
     { name: 'Projects', href: '#projects' },
     { name: 'Skills', href: '#skills' },
     { name: 'Ask AI', href: '#ask-ai' },
-    { name: 'Contact', href: '#contact' },
   ];
 
   return (
@@ -73,10 +72,10 @@ const Navbar = () => {
             </a>
           ))}
           <a 
-            href="#resume" 
+            href="#contact" 
             className="px-4 py-2 bg-white text-navy-950 rounded-full text-sm font-bold hover:bg-accent transition-colors"
           >
-            Resume
+            Contact
           </a>
         </div>
 
@@ -110,11 +109,11 @@ const Navbar = () => {
                 </a>
               ))}
               <a 
-                href="#resume" 
+                href="#contact" 
                 className="w-full py-3 bg-white text-navy-950 rounded-xl text-center font-bold"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Resume
+                Contact
               </a>
             </div>
           </motion.div>
@@ -151,8 +150,8 @@ const Hero = () => {
             <a href="#projects" className="px-8 py-4 bg-white text-navy-950 rounded-xl font-bold flex items-center gap-2 hover:bg-accent transition-all group">
               Explore Projects <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </a>
-            <a href="#resume" className="px-8 py-4 glass text-white rounded-xl font-bold hover:bg-white/10 transition-all">
-              View Resume
+            <a href="#ask-ai" className="px-8 py-4 glass text-white rounded-xl font-bold hover:bg-white/10 transition-all">
+              Ask AI
             </a>
           </div>
 
@@ -573,97 +572,6 @@ const AskAI = () => {
   );
 };
 
-const Resume = () => {
-  const [version, setVersion] = useState('AI PM');
-  const versions = ['AI PM', 'Growth PM', 'General PM'];
-
-  const handleDownload = () => {
-    console.log("Download button clicked!");
-    try {
-      const doc = new jsPDF();
-      
-      // Add content to the PDF
-      doc.setFontSize(22);
-      doc.text("YANG LIU", 20, 20);
-      
-      doc.setFontSize(14);
-      doc.text(`Product Leader | ${version} Focus`, 20, 30);
-      
-      doc.setFontSize(10);
-      doc.text(`Email: ${portfolioData.contact.email} | LinkedIn: ${portfolioData.contact.linkedin}`, 20, 40);
-      
-      doc.line(20, 45, 190, 45);
-      
-      doc.setFontSize(16);
-      doc.text("Experience Summary", 20, 55);
-      
-      doc.setFontSize(12);
-      doc.text("• Google Cloud: Group Product Manager", 25, 65);
-      doc.text("• AWS: Principal Product Manager", 25, 75);
-      doc.text("• T-Mobile: Principal Product Manager", 25, 85);
-      doc.text("• Aivance Business Solutions: Founder & Principal", 25, 95);
-      
-      if (version === 'AI PM') {
-        doc.text("• Led GenAI solutions and AI agent systems.", 25, 105);
-      } else if (version === 'Growth PM') {
-        doc.text("• Scaled platforms and drove $1.2B+ ARR portfolio.", 25, 105);
-      } else {
-        doc.text("• 15+ years of experience building enterprise products.", 25, 105);
-      }
-      
-      // Save the PDF
-      doc.save(`Yang_Liu_Resume_${version.replace(' ', '_')}.pdf`);
-      console.log("PDF generated and saved successfully.");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-    }
-  };
-
-  return (
-    <section id="resume" className="py-24">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="mb-16 text-center">
-          <h2 className="text-sm font-black text-accent uppercase tracking-[0.3em] mb-4">Resume</h2>
-          <h3 className="text-4xl font-bold">Download Professional Profile</h3>
-        </div>
-
-        <div className="max-w-4xl mx-auto glass rounded-3xl p-8 md:p-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
-            <div>
-              <h4 className="text-2xl font-bold mb-2">Select Version</h4>
-              <p className="text-slate-400">Tailored resumes for specific roles.</p>
-            </div>
-            <div className="flex bg-navy-950 p-1.5 rounded-2xl border border-white/10">
-              {versions.map(v => (
-                <button 
-                  key={v}
-                  onClick={() => setVersion(v)}
-                  className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${version === v ? 'bg-white text-navy-950 shadow-lg' : 'text-slate-500 hover:text-white'}`}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="aspect-[1/1.4] bg-navy-800 rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center p-12 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent z-0 pointer-events-none" />
-            <FileText size={80} className="text-slate-700 mb-6 group-hover:text-accent transition-colors relative z-10" />
-            <h5 className="text-xl font-bold mb-2 relative z-10">Yang_Liu_{version.replace(' ', '_')}.pdf</h5>
-            <p className="text-slate-500 mb-8 max-w-xs relative z-10">Last updated: March 2026. High-resolution PDF optimized for ATS.</p>
-            <button 
-              onClick={handleDownload}
-              className="px-8 py-4 bg-white text-navy-950 rounded-xl font-bold flex items-center gap-2 hover:bg-accent transition-all relative z-10 cursor-pointer"
-            >
-              <Download size={20} /> Download Resume
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
 const Contact = () => {
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -725,14 +633,14 @@ const Contact = () => {
                   <div className="text-lg font-bold text-white">linkedin.com/in/yangliuprofile</div>
                 </div>
               </a>
-            </div>
-
-            <div className="flex gap-4">
-              <a href={portfolioData.contact.github} className="w-12 h-12 rounded-2xl glass flex items-center justify-center text-slate-400 hover:text-white hover:border-accent transition-all">
-                <Github size={20} />
-              </a>
-              <a href={portfolioData.contact.twitter} className="w-12 h-12 rounded-2xl glass flex items-center justify-center text-slate-400 hover:text-white hover:border-accent transition-all">
-                <Twitter size={20} />
+              <a href={portfolioData.contact.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group">
+                <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-navy-950 transition-all">
+                  <Github size={20} />
+                </div>
+                <div>
+                  <div className="text-xs text-slate-500 font-bold uppercase">GitHub</div>
+                  <div className="text-lg font-bold text-white">gitHub/yliu-online</div>
+                </div>
               </a>
             </div>
           </div>
@@ -807,7 +715,6 @@ export default function App() {
         <Projects />
         <Skills />
         <AskAI />
-        <Resume />
         <Contact />
       </main>
       <Footer />

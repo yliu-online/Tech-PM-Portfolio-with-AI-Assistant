@@ -130,7 +130,6 @@ export const portfolioData = {
   contact: {
     email: "yangliu.wa.us@gmail.com",
     linkedin: "https://linkedin.com/in/yangliuprofile",
-    github: "https://github.com/yangliu",
-    twitter: "https://twitter.com/yangliu"
+    github: "https://github.com/yliu-online"
   }
 };
