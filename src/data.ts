@@ -6,7 +6,7 @@
 export const portfolioData = {
   name: "Yang Liu",
   title: "Product Leader | Cloud, LLMs, Generative AI",
-  profileImage: "https://drive.google.com/uc?export=view&id=1aawZfiCWGWWbTUmtvSB1Jh7dE-8Q-GPb",
+  profileImage: "https://i.postimg.cc/fkZqVP4j/head.jpg",
   valueProp: "15+ years of experience building enterprise products and scaling platforms at Google, AWS, and Microsoft. Expert in GenAI solutions, AI agent systems, and cloud infrastructure.",
   stats: [
     { label: "ARR Portfolio", value: "$1.2B+" },

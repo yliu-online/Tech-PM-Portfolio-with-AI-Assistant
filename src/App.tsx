@@ -178,36 +178,36 @@ const Hero = () => {
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-transparent to-transparent opacity-60" />
-            
-            {/* Floating UI elements */}
-            <motion.div 
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="absolute top-10 right-10 glass p-4 rounded-2xl flex items-center gap-3"
-            >
-              <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400">
-                <BarChart3 size={20} />
-              </div>
-              <div>
-                <div className="text-xs text-slate-400 font-bold uppercase">Growth</div>
-                <div className="text-lg font-bold text-white">+150% YoY</div>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-              className="absolute bottom-10 left-10 glass p-4 rounded-2xl flex items-center gap-3"
-            >
-              <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center text-accent">
-                <CheckCircle2 size={20} />
-              </div>
-              <div>
-                <div className="text-xs text-slate-400 font-bold uppercase">Launched</div>
-                <div className="text-lg font-bold text-white">0→1 Products</div>
-              </div>
-            </motion.div>
           </div>
+            
+          {/* Floating UI elements */}
+          <motion.div 
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute top-10 -right-12 glass p-4 rounded-2xl flex items-center gap-3 z-10"
+          >
+            <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400">
+              <BarChart3 size={20} />
+            </div>
+            <div>
+              <div className="text-xs text-slate-400 font-bold uppercase">Growth</div>
+              <div className="text-lg font-bold text-white">+150% YoY</div>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+            className="absolute bottom-10 -left-12 glass p-4 rounded-2xl flex items-center gap-3 z-10"
+          >
+            <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center text-accent">
+              <CheckCircle2 size={20} />
+            </div>
+            <div>
+              <div className="text-xs text-slate-400 font-bold uppercase">Launched</div>
+              <div className="text-lg font-bold text-white">0→1 Products</div>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
@@ -646,7 +646,7 @@ const Contact = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           <div>
             <h2 className="text-sm font-black text-accent uppercase tracking-[0.3em] mb-4">Contact</h2>
-            <h3 className="text-5xl font-bold mb-8">Let's build something great together.</h3>
+            <h3 className="text-5xl font-bold mb-8">Let's build something great together</h3>
             <p className="text-xl text-slate-400 mb-12 leading-relaxed">
               I'm always open to discussing new products, growth strategies, or AI innovations.
             </p>
