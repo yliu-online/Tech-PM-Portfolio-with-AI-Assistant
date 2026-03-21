@@ -4,6 +4,8 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { jsPDF } from 'jspdf';
+import emailjs from '@emailjs/browser';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, 
@@ -576,30 +578,45 @@ const Resume = () => {
   const versions = ['AI PM', 'Growth PM', 'General PM'];
 
   const handleDownload = () => {
-    // In a real production app, this would be a link to a static PDF file
-    // For this demonstration, we generate a downloadable text summary to ensure the button is functional
-    const content = `
-YANG LIU - PRODUCT LEADER
-Version: ${version}
-
-Experience Summary:
-- Google Cloud: Group Product Manager
-- AWS: Principal Product Manager
-- T-Mobile: Principal Product Manager
-- Aivance Business Solutions: Founder & Principal
-
-Contact: ${portfolioData.contact.email}
-LinkedIn: ${portfolioData.contact.linkedin}
-    `;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Yang_Liu_Resume_${version.replace(' ', '_')}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    console.log("Download button clicked!");
+    try {
+      const doc = new jsPDF();
+      
+      // Add content to the PDF
+      doc.setFontSize(22);
+      doc.text("YANG LIU", 20, 20);
+      
+      doc.setFontSize(14);
+      doc.text(`Product Leader | ${version} Focus`, 20, 30);
+      
+      doc.setFontSize(10);
+      doc.text(`Email: ${portfolioData.contact.email} | LinkedIn: ${portfolioData.contact.linkedin}`, 20, 40);
+      
+      doc.line(20, 45, 190, 45);
+      
+      doc.setFontSize(16);
+      doc.text("Experience Summary", 20, 55);
+      
+      doc.setFontSize(12);
+      doc.text("• Google Cloud: Group Product Manager", 25, 65);
+      doc.text("• AWS: Principal Product Manager", 25, 75);
+      doc.text("• T-Mobile: Principal Product Manager", 25, 85);
+      doc.text("• Aivance Business Solutions: Founder & Principal", 25, 95);
+      
+      if (version === 'AI PM') {
+        doc.text("• Led GenAI solutions and AI agent systems.", 25, 105);
+      } else if (version === 'Growth PM') {
+        doc.text("• Scaled platforms and drove $1.2B+ ARR portfolio.", 25, 105);
+      } else {
+        doc.text("• 15+ years of experience building enterprise products.", 25, 105);
+      }
+      
+      // Save the PDF
+      doc.save(`Yang_Liu_Resume_${version.replace(' ', '_')}.pdf`);
+      console.log("PDF generated and saved successfully.");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
   };
 
   return (
@@ -630,13 +647,13 @@ LinkedIn: ${portfolioData.contact.linkedin}
           </div>
 
           <div className="aspect-[1/1.4] bg-navy-800 rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center p-12 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent" />
-            <FileText size={80} className="text-slate-700 mb-6 group-hover:text-accent transition-colors" />
-            <h5 className="text-xl font-bold mb-2">Yang_Liu_{version.replace(' ', '_')}.pdf</h5>
-            <p className="text-slate-500 mb-8 max-w-xs">Last updated: March 2026. High-resolution PDF optimized for ATS.</p>
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent z-0 pointer-events-none" />
+            <FileText size={80} className="text-slate-700 mb-6 group-hover:text-accent transition-colors relative z-10" />
+            <h5 className="text-xl font-bold mb-2 relative z-10">Yang_Liu_{version.replace(' ', '_')}.pdf</h5>
+            <p className="text-slate-500 mb-8 max-w-xs relative z-10">Last updated: March 2026. High-resolution PDF optimized for ATS.</p>
             <button 
               onClick={handleDownload}
-              className="px-8 py-4 bg-white text-navy-950 rounded-xl font-bold flex items-center gap-2 hover:bg-accent transition-all"
+              className="px-8 py-4 bg-white text-navy-950 rounded-xl font-bold flex items-center gap-2 hover:bg-accent transition-all relative z-10 cursor-pointer"
             >
               <Download size={20} /> Download Resume
             </button>
@@ -648,6 +665,36 @@ LinkedIn: ${portfolioData.contact.linkedin}
 };
 
 const Contact = () => {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formRef.current) return;
+
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    emailjs.sendForm(
+      'service_0xkxfnn', 
+      'template_foqvrqc', 
+      formRef.current, 
+      'w31qZC1spmhbQ0Xo4'
+    )
+    .then(() => {
+      setSubmitStatus('success');
+      formRef.current?.reset();
+    })
+    .catch((error) => {
+      console.error('EmailJS Error:', error);
+      setSubmitStatus('error');
+    })
+    .finally(() => {
+      setIsSubmitting(false);
+    });
+  };
+
   return (
     <section id="contact" className="py-24 bg-navy-900/50">
       <div className="max-w-7xl mx-auto px-6">
@@ -691,28 +738,39 @@ const Contact = () => {
           </div>
 
           <div className="glass rounded-3xl p-8 md:p-12">
-            <form className="space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Name</label>
-                  <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-sm focus:outline-none focus:border-accent transition-colors" placeholder="John Doe" />
+                  <input type="text" name="user_name" required className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-sm focus:outline-none focus:border-accent transition-colors" placeholder="John Doe" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Email</label>
-                  <input type="email" className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-sm focus:outline-none focus:border-accent transition-colors" placeholder="john@example.com" />
+                  <input type="email" name="user_email" required className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-sm focus:outline-none focus:border-accent transition-colors" placeholder="john@example.com" />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Subject</label>
-                <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-sm focus:outline-none focus:border-accent transition-colors" placeholder="New Project Opportunity" />
+                <input type="text" name="subject" required className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-sm focus:outline-none focus:border-accent transition-colors" placeholder="New Project Opportunity" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Message</label>
-                <textarea rows={5} className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-sm focus:outline-none focus:border-accent transition-colors resize-none" placeholder="Hello Yang, I'd like to talk about..." />
+                <textarea name="message" required rows={5} className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-sm focus:outline-none focus:border-accent transition-colors resize-none" placeholder="Hello Yang, I'd like to talk about..." />
               </div>
-              <button className="w-full py-4 bg-white text-navy-950 rounded-xl font-bold hover:bg-accent transition-all flex items-center justify-center gap-2">
-                Send Message <Send size={18} />
+              <button disabled={isSubmitting} type="submit" className="w-full py-4 bg-white text-navy-950 rounded-xl font-bold hover:bg-accent transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                {isSubmitting ? 'Sending...' : 'Send Message'} {!isSubmitting && <Send size={18} />}
               </button>
+              
+              {submitStatus === 'success' && (
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm text-center">
+                  Message sent successfully! I'll get back to you soon.
+                </div>
+              )}
+              {submitStatus === 'error' && (
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">
+                  Failed to send message. Please try again or email me directly.
+                </div>
+              )}
             </form>
           </div>
         </div>
