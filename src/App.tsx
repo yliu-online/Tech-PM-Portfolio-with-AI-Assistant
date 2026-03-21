@@ -434,7 +434,9 @@ const AskAI = () => {
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 1) {
+      scrollToBottom();
+    }
   }, [messages]);
 
   useEffect(() => {
