@@ -406,7 +406,7 @@ const Skills = () => {
                 {cat.icon}
               </div>
               <h4 className="text-xl font-bold mb-6">{cat.name}</h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col items-start gap-2">
                 {cat.items.map(item => (
                   <span key={item} className="px-3 py-1.5 rounded-lg bg-white/5 text-sm font-medium text-slate-400 border border-white/5">
                     {item}
