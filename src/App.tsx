@@ -184,7 +184,7 @@ const Hero = () => {
           <motion.div 
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 4, repeat: Infinity }}
-            className="absolute top-10 -right-12 glass p-4 rounded-2xl flex items-center gap-3 z-10"
+            className="absolute -top-4 -right-20 glass p-4 rounded-2xl flex items-center gap-3 z-10"
           >
             <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400">
               <BarChart3 size={20} />
@@ -198,7 +198,7 @@ const Hero = () => {
           <motion.div 
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-            className="absolute bottom-10 -left-12 glass p-4 rounded-2xl flex items-center gap-3 z-10"
+            className="absolute -bottom-12 left-4 glass p-4 rounded-2xl flex items-center gap-3 z-10"
           >
             <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center text-accent">
               <CheckCircle2 size={20} />
