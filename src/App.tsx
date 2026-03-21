@@ -170,14 +170,22 @@ const Hero = () => {
           transition={{ duration: 1, delay: 0.2 }}
           className="relative hidden lg:block"
         >
-          <div className="aspect-square rounded-full overflow-hidden relative group border-4 border-white/10">
+          <div 
+            className="aspect-square rounded-full overflow-hidden relative group border-4 border-white/10"
+            style={{
+              backgroundColor: '#ffffff',
+              backgroundImage: `url(${portfolioData.profileImage || "https://picsum.photos/seed/yang-liu/800/800"})`,
+              backgroundSize: '100000% 100000%',
+              backgroundPosition: '5% 5%',
+              backgroundRepeat: 'no-repeat'
+            }}
+          >
             <img 
               src={portfolioData.profileImage || "https://picsum.photos/seed/yang-liu/800/800"} 
               alt="Yang Liu" 
-              className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
+              className="w-full h-full object-contain scale-[0.80] translate-y-2"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-transparent to-transparent opacity-60" />
           </div>
             
           {/* Floating UI elements */}
