@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { jsPDF } from 'jspdf';
 import emailjs from '@emailjs/browser';
 import { motion, AnimatePresence } from 'motion/react';
@@ -225,7 +225,7 @@ const Hero = () => {
 
 const About = () => {
   return (
-    <section id="about" className="py-24 bg-navy-900/50">
+    <section id="about" className="py-24 bg-navy-900/50 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
           <div className="lg:col-span-1">
@@ -260,7 +260,7 @@ const About = () => {
 
 const Experience = () => {
   return (
-    <section id="experience" className="py-24">
+    <section id="experience" className="py-24 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-16">
           <h2 className="text-sm font-black text-accent uppercase tracking-[0.3em] mb-4">Experience</h2>
@@ -317,7 +317,7 @@ const Projects = () => {
   };
 
   return (
-    <section id="projects" className="py-24 bg-navy-900/50">
+    <section id="projects" className="py-24 bg-navy-900/50 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div>
@@ -392,7 +392,7 @@ const Skills = () => {
   ];
 
   return (
-    <section id="skills" className="py-24">
+    <section id="skills" className="py-24 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-16 text-center">
           <h2 className="text-sm font-black text-accent uppercase tracking-[0.3em] mb-4">Skills</h2>
@@ -466,7 +466,13 @@ const AskAI = () => {
       setTimeout(() => {
         const msgEl = document.getElementById(`message-${nextMessages.length - 1}`);
         if (msgEl) {
-          msgEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const container = msgEl.closest('.overflow-y-auto');
+          if (container) {
+            container.scrollTo({
+              top: msgEl.offsetTop - 24,
+              behavior: 'smooth'
+            });
+          }
         }
       }, 100);
       return nextMessages;
@@ -480,7 +486,13 @@ const AskAI = () => {
       setTimeout(() => {
         const msgEl = document.getElementById(`message-${nextMessages.length - 1}`);
         if (msgEl) {
-          msgEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const container = msgEl.closest('.overflow-y-auto');
+          if (container) {
+            container.scrollTo({
+              top: msgEl.offsetTop - 24,
+              behavior: 'smooth'
+            });
+          }
         }
       }, 100);
       return nextMessages;
@@ -495,7 +507,7 @@ const AskAI = () => {
   ];
 
   return (
-    <section id="ask-ai" className="py-24 bg-navy-900/50">
+    <section id="ask-ai" className="py-24 bg-navy-900/50 scroll-mt-24">
       <div className="max-w-4xl mx-auto px-6">
         <div className="mb-12 text-center">
           <h3 className="text-4xl font-bold mb-4">Ask AI About Me</h3>
@@ -516,7 +528,7 @@ const AskAI = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide relative">
             {messages.map((msg, idx) => (
               <motion.div 
                 key={idx}
@@ -634,7 +646,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-24 bg-navy-900/50">
+    <section id="contact" className="py-24 bg-navy-900/50 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           <div>
@@ -735,6 +747,33 @@ const Footer = () => {
 };
 
 export default function App() {
+  useLayoutEffect(() => {
+    // 1. Disable browser's automatic scroll restoration
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    
+    // 2. Clear any hash in the URL to prevent jumping to sections
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    
+    // 3. Force scroll to top immediately
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    
+    // 4. Use multiple timeouts to catch any delayed browser scroll attempts
+    // This is especially needed in React 18 Strict Mode or iframe environments
+    const t1 = setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }), 10);
+    const t2 = setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }), 100);
+    const t3 = setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }), 500);
+    
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, []);
+
   return (
     <div className="relative">
       <Navbar />

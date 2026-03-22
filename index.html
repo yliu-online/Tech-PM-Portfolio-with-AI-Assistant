@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Yang Liu | Tech PM Leader Portfolio</title>
+    <script>
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+      window.onbeforeunload = function () {
+        window.scrollTo(0, 0);
+      };
+      window.scrollTo(0, 0);
+      window.addEventListener('load', function() {
+        window.scrollTo(0, 0);
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
