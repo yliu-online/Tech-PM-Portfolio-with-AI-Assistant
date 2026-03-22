@@ -428,24 +428,25 @@ const AskAI = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    if (messages.length > 1) {
-      scrollToBottom();
-    }
-  }, [messages]);
-
-  useEffect(() => {
     const handleDeepDiveEvent = (e: any) => {
       const title = e.detail;
       const prompt = `Tell me more about the "${title}" project. What was your specific role and what were the key technical challenges?`;
       setInput(prompt);
-      // Optional: automatically send it
-      // handleSend(prompt);
+      
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+          textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+          textareaRef.current.focus();
+        }
+      }, 100);
     };
     window.addEventListener('ai-deep-dive', handleDeepDiveEvent);
     return () => window.removeEventListener('ai-deep-dive', handleDeepDiveEvent);
@@ -456,12 +457,34 @@ const AskAI = () => {
 
     const userMsg = text.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+    
+    setMessages(prev => {
+      const nextMessages = [...prev, { role: 'user' as const, content: userMsg }];
+      setTimeout(() => {
+        const msgEl = document.getElementById(`message-${nextMessages.length - 1}`);
+        if (msgEl) {
+          msgEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+      return nextMessages;
+    });
     setIsLoading(true);
 
     const response = await aiService.askAboutMe(userMsg);
     
-    setMessages(prev => [...prev, { role: 'ai', content: response }]);
+    setMessages(prev => {
+      const nextMessages = [...prev, { role: 'ai' as const, content: response }];
+      setTimeout(() => {
+        const msgEl = document.getElementById(`message-${nextMessages.length - 1}`);
+        if (msgEl) {
+          msgEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+      return nextMessages;
+    });
     setIsLoading(false);
   };
 
@@ -497,6 +520,7 @@ const AskAI = () => {
             {messages.map((msg, idx) => (
               <motion.div 
                 key={idx}
+                id={`message-${idx}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -538,19 +562,35 @@ const AskAI = () => {
             </div>
             <form 
               onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-              className="relative"
+              className="relative flex items-end"
             >
-              <input 
-                type="text" 
+              <textarea 
+                ref={textareaRef}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
                 placeholder="Ask about Yang's experience..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-6 pr-14 text-sm focus:outline-none focus:border-accent transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-6 pr-14 text-sm focus:outline-none focus:border-accent transition-colors resize-none overflow-hidden min-h-[54px] max-h-[200px]"
+                rows={1}
               />
               <button 
-                type="submit"
+                type="button"
+                onClick={() => handleSend()}
                 disabled={!input.trim() || isLoading}
-                className="absolute right-2 top-2 bottom-2 w-10 bg-accent text-navy-950 rounded-lg flex items-center justify-center hover:bg-white transition-colors disabled:opacity-50"
+                className={`absolute right-2 bottom-2 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 ${
+                  input.trim() && !isLoading 
+                    ? 'bg-accent text-navy-950 hover:bg-white shadow-[0_0_15px_rgba(52,211,153,0.4)] animate-pulse' 
+                    : 'bg-white/10 text-slate-400'
+                }`}
               >
                 <Send size={18} />
               </button>
