@@ -316,7 +316,12 @@ const Projects = () => {
           aiSection.scrollIntoView({ behavior: 'smooth' });
         }
       } else {
-        aiSection.scrollIntoView({ behavior: 'smooth' });
+        const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
+        if (chatContainer) {
+          chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        } else {
+          aiSection.scrollIntoView({ behavior: 'smooth' });
+        }
       }
       // Small delay to ensure scroll starts before event
       setTimeout(() => {
@@ -471,6 +476,14 @@ const AskAI = () => {
               chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
             }
           }
+        } else {
+          const aiSection = document.getElementById('ask-ai');
+          if (aiSection) {
+            const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
+            if (chatContainer) {
+              chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+          }
         }
       }, 100);
       return nextMessages;
@@ -497,6 +510,20 @@ const AskAI = () => {
                 chatContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }
             }
+          } else {
+            const aiSection = document.getElementById('ask-ai');
+            if (aiSection) {
+              const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
+              if (chatContainer) {
+                // Scroll page so the top of the chat container is visible, offset by navbar
+                const rect = chatContainer.getBoundingClientRect();
+                const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                window.scrollTo({
+                  top: rect.top + scrollTop - 100,
+                  behavior: 'smooth'
+                });
+              }
+            }
           }
         }
       }, 100);
@@ -519,14 +546,9 @@ const AskAI = () => {
           handleSendRef.current(prompt);
         }
       } else {
-        setInput(prompt);
-        setTimeout(() => {
-          if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-            textareaRef.current.focus();
-          }
-        }, 100);
+        if (handleSendRef.current) {
+          handleSendRef.current(prompt);
+        }
       }
     };
     window.addEventListener('ai-deep-dive', handleDeepDiveEvent);
