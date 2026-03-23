@@ -429,9 +429,15 @@ const AskAI = () => {
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   };
 
   useEffect(() => {
@@ -464,16 +470,7 @@ const AskAI = () => {
     setMessages(prev => {
       const nextMessages = [...prev, { role: 'user' as const, content: userMsg }];
       setTimeout(() => {
-        const msgEl = document.getElementById(`message-${nextMessages.length - 1}`);
-        if (msgEl) {
-          const container = msgEl.closest('.overflow-y-auto');
-          if (container) {
-            container.scrollTo({
-              top: msgEl.offsetTop - 24,
-              behavior: 'smooth'
-            });
-          }
-        }
+        scrollToBottom();
       }, 100);
       return nextMessages;
     });
@@ -485,14 +482,11 @@ const AskAI = () => {
       const nextMessages = [...prev, { role: 'ai' as const, content: response }];
       setTimeout(() => {
         const msgEl = document.getElementById(`message-${nextMessages.length - 1}`);
-        if (msgEl) {
-          const container = msgEl.closest('.overflow-y-auto');
-          if (container) {
-            container.scrollTo({
-              top: msgEl.offsetTop - 24,
-              behavior: 'smooth'
-            });
-          }
+        if (msgEl && chatContainerRef.current) {
+          chatContainerRef.current.scrollTo({
+            top: msgEl.offsetTop - 24,
+            behavior: 'smooth'
+          });
         }
       }, 100);
       return nextMessages;
@@ -528,7 +522,7 @@ const AskAI = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide relative">
+          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide relative">
             {messages.map((msg, idx) => (
               <motion.div 
                 key={idx}

@@ -59,6 +59,18 @@ export const portfolioData = {
       metrics: "Drove 25%+ topline growth and 35% engagement increase."
     },
     {
+      company: "Microsoft",
+      logo: "https://logo.clearbit.com/microsoft.com",
+      role: "Senior Product Manager / Product Manager",
+      period: "2003 - 2014",
+      achievements: [
+        "Online Advertising: Led product strategy for ad targeting. Launched Microsoft's first programmatic ad service. Spearheaded a $50M investment partnership and integration with AppNexus.",
+        "Mobile Division: Managed the v1 launch of Microsoft Mobile Device Manager (now Intune). Developed the product roadmap and pricing strategy. Led engagements with the Enterprise Customer Advisory Board.",
+        "Online Services: Developed product strategy for a secure payment and settlement platform. Delivered solutions supporting global services like Premium MSN, Xbox Live, and AdCenter."
+      ],
+      metrics: "Launched programmatic ad service and $50M AppNexus partnership."
+    },
+    {
       company: "Aivance Business Solutions",
       logo: "https://logo.clearbit.com/aivance.io",
       role: "Founder & Principal",
