@@ -15,6 +15,12 @@
     @apply bg-navy-950 text-slate-200 font-sans selection:bg-accent/30;
   }
   
+  @media (min-width: 768px) {
+    body {
+      zoom: 0.9;
+    }
+  }
+  
   h1, h2, h3, h4, h5, h6 {
     @apply text-white font-bold tracking-tight;
   }
