@@ -308,7 +308,16 @@ const Projects = () => {
   const handleDeepDive = (projectTitle: string) => {
     const aiSection = document.getElementById('ask-ai');
     if (aiSection) {
-      aiSection.scrollIntoView({ behavior: 'smooth' });
+      if (window.innerWidth <= 768) {
+        const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
+        if (chatContainer) {
+          chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        } else {
+          aiSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        aiSection.scrollIntoView({ behavior: 'smooth' });
+      }
       // Small delay to ensure scroll starts before event
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('ai-deep-dive', { detail: projectTitle }));
@@ -430,6 +439,7 @@ const AskAI = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const handleSendRef = useRef<any>(null);
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -439,24 +449,6 @@ const AskAI = () => {
       });
     }
   };
-
-  useEffect(() => {
-    const handleDeepDiveEvent = (e: any) => {
-      const title = e.detail;
-      const prompt = `Tell me more about the "${title}" project. What was your specific role and what were the key technical challenges?`;
-      setInput(prompt);
-      
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.style.height = 'auto';
-          textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-          textareaRef.current.focus();
-        }
-      }, 100);
-    };
-    window.addEventListener('ai-deep-dive', handleDeepDiveEvent);
-    return () => window.removeEventListener('ai-deep-dive', handleDeepDiveEvent);
-  }, []);
 
   const handleSend = async (text: string = input) => {
     if (!text.trim() || isLoading) return;
@@ -471,6 +463,15 @@ const AskAI = () => {
       const nextMessages = [...prev, { role: 'user' as const, content: userMsg }];
       setTimeout(() => {
         scrollToBottom();
+        if (window.innerWidth <= 768) {
+          const aiSection = document.getElementById('ask-ai');
+          if (aiSection) {
+            const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
+            if (chatContainer) {
+              chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+          }
+        }
       }, 100);
       return nextMessages;
     });
@@ -487,12 +488,50 @@ const AskAI = () => {
             top: msgEl.offsetTop - 24,
             behavior: 'smooth'
           });
+          if (window.innerWidth <= 768) {
+            const aiSection = document.getElementById('ask-ai');
+            if (aiSection) {
+              const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
+              if (chatContainer) {
+                // Scroll page so the top of the chat container is visible
+                chatContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }
+          }
         }
       }, 100);
       return nextMessages;
     });
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    handleSendRef.current = handleSend;
+  }, [handleSend]);
+
+  useEffect(() => {
+    const handleDeepDiveEvent = (e: any) => {
+      const title = e.detail;
+      const prompt = `Tell me more about the "${title}" project. What was your specific role and what were the key technical challenges?`;
+      
+      if (window.innerWidth <= 768) {
+        if (handleSendRef.current) {
+          handleSendRef.current(prompt);
+        }
+      } else {
+        setInput(prompt);
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+            textareaRef.current.focus();
+          }
+        }, 100);
+      }
+    };
+    window.addEventListener('ai-deep-dive', handleDeepDiveEvent);
+    return () => window.removeEventListener('ai-deep-dive', handleDeepDiveEvent);
+  }, []);
 
   const suggestedPrompts = [
     "What products has Yang launched?",
