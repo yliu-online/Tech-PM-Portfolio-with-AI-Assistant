@@ -117,12 +117,12 @@ export const portfolioData = {
       imageKeyword: "mobile-privacy-security"
     },
     {
-      title: "Enterprise Identity 2.0",
-      problem: "Fragmented authentication and authorization across enterprise products created significant security risks and user friction.",
-      solution: "Spearheaded a unified identity platform consolidating SSO, SCIM, RBAC, and identity federation into a single, secure infrastructure.",
-      impact: "Streamlined authentication for millions of users; significantly reduced complexity and strengthened the overall security posture.",
-      tags: ["Security", "Identity", "Enterprise"],
-      imageKeyword: "cyber-security-identity"
+      title: "Microsoft Mobile Device Manager",
+      problem: "Enterprises lacked a cohesive, secure way to manage the rapidly growing influx of mobile devices, creating significant security and compliance vulnerabilities.",
+      solution: "Led the 0-to-1 product lifecycle for v1 MS MDM (now Intune). Managed market research, developed the roadmap, and led the Enterprise Customer Advisory Board to ensure deep customer obsession.",
+      impact: "Developed the global pricing and licensing strategy, and successfully led the worldwide commercial launch, delivering live on-stage demos at industry conferences.",
+      tags: ["Enterprise", "GTM Strategy", "0-to-1 Launch"],
+      imageKeyword: "workspace"
     },
     {
       title: "AI-First Enterprise Strategy",

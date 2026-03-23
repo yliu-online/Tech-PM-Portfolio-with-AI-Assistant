@@ -352,7 +352,7 @@ const Projects = () => {
             >
               <div className="aspect-video bg-navy-800 relative overflow-hidden">
                 <img 
-                  src={`https://picsum.photos/seed/${project.imageKeyword || project.title}/600/400`} 
+                  src={project.imageKeyword?.startsWith('http') ? project.imageKeyword : `https://picsum.photos/seed/${project.imageKeyword || project.title}/600/400`} 
                   alt={project.title}
                   className="w-full h-full object-cover opacity-50 group-hover:opacity-80 transition-opacity"
                   referrerPolicy="no-referrer"
