@@ -490,46 +490,63 @@ const AskAI = () => {
     });
     setIsLoading(true);
 
-    const response = await aiService.askAboutMe(userMsg);
-    
-    setMessages(prev => {
-      const nextMessages = [...prev, { role: 'ai' as const, content: response }];
+    // Initial AI message placeholder
+    setMessages(prev => [...prev, { role: 'ai' as const, content: '' }]);
+
+    let fullResponse = '';
+    try {
+      const stream = aiService.askAboutMeStream(userMsg);
+      for await (const chunk of stream) {
+        fullResponse += chunk;
+        setMessages(prev => {
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1] = { role: 'ai', content: fullResponse };
+          return newMessages;
+        });
+        scrollToBottom();
+      }
+      
+      // Final scroll logic after stream completes
       setTimeout(() => {
-        const msgEl = document.getElementById(`message-${nextMessages.length - 1}`);
-        if (msgEl && chatContainerRef.current) {
-          chatContainerRef.current.scrollTo({
-            top: msgEl.offsetTop - 24,
-            behavior: 'smooth'
-          });
-          if (window.innerWidth <= 768) {
-            const aiSection = document.getElementById('ask-ai');
-            if (aiSection) {
-              const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
-              if (chatContainer) {
-                // Scroll page so the top of the chat container is visible
-                chatContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setMessages(prev => {
+          const lastIdx = prev.length - 1;
+          const msgEl = document.getElementById(`message-${lastIdx}`);
+          if (msgEl && chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+              top: msgEl.offsetTop - 24,
+              behavior: 'smooth'
+            });
+            if (window.innerWidth <= 768) {
+              const aiSection = document.getElementById('ask-ai');
+              if (aiSection) {
+                const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
+                if (chatContainer) {
+                  chatContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
               }
-            }
-          } else {
-            const aiSection = document.getElementById('ask-ai');
-            if (aiSection) {
-              const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
-              if (chatContainer) {
-                // Scroll page so the top of the chat container is visible, offset by navbar
-                const rect = chatContainer.getBoundingClientRect();
-                const scrollTop = window.scrollY || document.documentElement.scrollTop;
-                window.scrollTo({
-                  top: rect.top + scrollTop - 100,
-                  behavior: 'smooth'
-                });
+            } else {
+              const aiSection = document.getElementById('ask-ai');
+              if (aiSection) {
+                const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
+                if (chatContainer) {
+                  const rect = chatContainer.getBoundingClientRect();
+                  const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                  window.scrollTo({
+                    top: rect.top + scrollTop - 100,
+                    behavior: 'smooth'
+                  });
+                }
               }
             }
           }
-        }
+          return prev;
+        });
       }, 100);
-      return nextMessages;
-    });
-    setIsLoading(false);
+    } catch (error) {
+      console.error("Streaming error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {

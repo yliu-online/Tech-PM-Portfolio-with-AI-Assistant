@@ -9,6 +9,7 @@ import { portfolioData } from "../data";
 export class AIService {
   private ai: GoogleGenAI;
   private model: string = "gemini-3-flash-preview";
+  private cache: Map<string, string> = new Map();
 
   constructor() {
     const apiKey = 
@@ -21,8 +22,8 @@ export class AIService {
     this.ai = new GoogleGenAI({ apiKey });
   }
 
-  async askAboutMe(question: string) {
-    const systemInstruction = `
+  private getSystemInstruction() {
+    return `
       You are an AI assistant for Yang Liu, a Senior Product Leader. 
       Your goal is to answer questions from recruiters and hiring managers based on the following data:
       
@@ -57,19 +58,59 @@ export class AIService {
       - If asked something not in the data, politely say you don't have that information but highlight a related strength.
       - Use markdown for formatting.
     `;
+  }
+
+  async askAboutMe(question: string) {
+    const normalizedQuestion = question.trim().toLowerCase();
+    if (this.cache.has(normalizedQuestion)) {
+      return this.cache.get(normalizedQuestion)!;
+    }
 
     try {
       const response = await this.ai.models.generateContent({
         model: this.model,
         contents: question,
         config: {
-          systemInstruction,
+          systemInstruction: this.getSystemInstruction(),
         },
       });
-      return response.text || "I'm sorry, I couldn't generate a response at this time.";
+      const text = response.text || "I'm sorry, I couldn't generate a response at this time.";
+      this.cache.set(normalizedQuestion, text);
+      return text;
     } catch (error) {
       console.error("AI Service Error:", error);
       return "I'm experiencing some technical difficulties. Please try again later or contact Yang directly.";
+    }
+  }
+
+  async *askAboutMeStream(question: string) {
+    const normalizedQuestion = question.trim().toLowerCase();
+    if (this.cache.has(normalizedQuestion)) {
+      yield this.cache.get(normalizedQuestion)!;
+      return;
+    }
+
+    try {
+      const response = await this.ai.models.generateContentStream({
+        model: this.model,
+        contents: question,
+        config: {
+          systemInstruction: this.getSystemInstruction(),
+        },
+      });
+
+      let fullText = "";
+      for await (const chunk of response) {
+        const text = chunk.text;
+        if (text) {
+          fullText += text;
+          yield text;
+        }
+      }
+      this.cache.set(normalizedQuestion, fullText);
+    } catch (error) {
+      console.error("AI Service Error:", error);
+      yield "I'm experiencing some technical difficulties. Please try again later or contact Yang directly.";
     }
   }
 }
