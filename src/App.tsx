@@ -621,7 +621,7 @@ const AskAI = () => {
                 <button 
                   key={prompt}
                   onClick={() => handleSend(prompt)}
-                  className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white transition-all"
+                  className="text-sm px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white transition-all"
                 >
                   {prompt}
                 </button>
