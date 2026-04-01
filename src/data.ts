@@ -130,7 +130,7 @@ export const portfolioData = {
       solution: "Developed comprehensive AI-native product strategies and frameworks. Advised C-level executives on investment priorities and accelerated time-to-market for AI-first initiatives.",
       impact: "Accelerated time-to-market by 20% for key clients and secured strategic alignment on high-impact AI investments.",
       tags: ["Consulting", "Strategy", "GenAI"],
-      imageKeyword: "network"
+      imageKeyword: "business-ai-strategy"
     }
   ],
   skills: {

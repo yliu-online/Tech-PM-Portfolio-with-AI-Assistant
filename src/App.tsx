@@ -490,27 +490,31 @@ const AskAI = () => {
     });
     setIsLoading(true);
 
-    // Initial AI message placeholder
+    // Add an empty AI message first
     setMessages(prev => [...prev, { role: 'ai' as const, content: '' }]);
 
-    let fullResponse = '';
     try {
       const stream = aiService.askAboutMeStream(userMsg);
+      let fullContent = '';
+      let isFirstChunk = true;
+      
       for await (const chunk of stream) {
-        fullResponse += chunk;
+        if (isFirstChunk) {
+          setIsLoading(false);
+          isFirstChunk = false;
+        }
+        fullContent += chunk;
         setMessages(prev => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1] = { role: 'ai', content: fullResponse };
-          return newMessages;
+          const nextMessages = [...prev];
+          nextMessages[nextMessages.length - 1].content = fullContent;
+          return nextMessages;
         });
         scrollToBottom();
       }
       
-      // Final scroll logic after stream completes
       setTimeout(() => {
         setMessages(prev => {
-          const lastIdx = prev.length - 1;
-          const msgEl = document.getElementById(`message-${lastIdx}`);
+          const msgEl = document.getElementById(`message-${prev.length - 1}`);
           if (msgEl && chatContainerRef.current) {
             chatContainerRef.current.scrollTo({
               top: msgEl.offsetTop - 24,
@@ -521,6 +525,7 @@ const AskAI = () => {
               if (aiSection) {
                 const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
                 if (chatContainer) {
+                  // Scroll page so the top of the chat container is visible
                   chatContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }
@@ -529,6 +534,7 @@ const AskAI = () => {
               if (aiSection) {
                 const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
                 if (chatContainer) {
+                  // Scroll page so the top of the chat container is visible, offset by navbar
                   const rect = chatContainer.getBoundingClientRect();
                   const scrollTop = window.scrollY || document.documentElement.scrollTop;
                   window.scrollTo({
@@ -543,7 +549,12 @@ const AskAI = () => {
         });
       }, 100);
     } catch (error) {
-      console.error("Streaming error:", error);
+      console.error(error);
+      setMessages(prev => {
+        const nextMessages = [...prev];
+        nextMessages[nextMessages.length - 1].content = "I'm experiencing some technical difficulties. Please try again later.";
+        return nextMessages;
+      });
     } finally {
       setIsLoading(false);
     }
