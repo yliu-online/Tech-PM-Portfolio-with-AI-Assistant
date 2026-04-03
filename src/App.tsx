@@ -53,7 +53,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass py-3' : 'bg-transparent py-6'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || isMobileMenuOpen ? 'bg-navy-950/95 md:bg-white/5 backdrop-blur-md border-b md:border border-white/10 py-3' : 'bg-transparent py-6'}`}>
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
         <a href="#" className="text-xl font-bold tracking-tighter flex items-center gap-2">
           <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-navy-950 font-black">PM</div>
@@ -95,7 +95,7 @@ const Navbar = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 right-0 glass border-t border-white/10 p-6 md:hidden"
+            className="absolute top-full left-0 right-0 bg-navy-950/95 backdrop-blur-md border-b border-white/10 p-6 md:hidden shadow-2xl"
           >
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
