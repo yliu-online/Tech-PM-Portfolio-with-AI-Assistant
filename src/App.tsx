@@ -693,23 +693,25 @@ const AskAI = () => {
                     : `bg-white/10 text-slate-200 rounded-tl-none border border-white/10 transform-gpu will-change-transform ${idx === messages.length - 1 && isStreaming ? 'min-h-[120px] transition-[min-height] duration-300 ease-out' : ''}`
                 }`}>
                   <div className="markdown-body text-sm leading-relaxed relative">
-                    <Markdown>{msg.content}</Markdown>
-                    {idx === messages.length - 1 && isStreaming && (
-                      <span className="inline-block w-1.5 h-4 ml-1 bg-accent animate-pulse align-middle" />
+                    {msg.content ? (
+                      <>
+                        <Markdown>{msg.content}</Markdown>
+                        {idx === messages.length - 1 && isStreaming && (
+                          <span className="inline-block w-1.5 h-4 ml-1 bg-accent animate-pulse align-middle" />
+                        )}
+                      </>
+                    ) : (
+                      idx === messages.length - 1 && isStreaming && (
+                        <div className="flex items-center gap-2">
+                          <span className="inline-block w-1.5 h-4 bg-accent animate-pulse" />
+                          <span className="text-slate-400">Yang's AI assistant is thinking...</span>
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
               </motion.div>
             ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white/10 p-4 rounded-2xl rounded-tl-none border border-white/10 flex gap-1">
-                  <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" />
-                  <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce delay-75" />
-                  <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce delay-150" />
-                </div>
-              </div>
-            )}
             <div ref={chatEndRef} />
           </div>
 
