@@ -446,6 +446,40 @@ const AskAI = () => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const handleSendRef = useRef<any>(null);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const activeStreamIdRef = useRef<number>(0);
+  const streamBufferRef = useRef<string>('');
+  const rAFRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+
+    const observer = new ResizeObserver(() => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+      if (isNearBottom) {
+        container.scrollTo({
+          top: scrollHeight,
+          behavior: 'auto'
+        });
+      }
+    });
+
+    if (chatEndRef.current?.parentElement) {
+      observer.observe(chatEndRef.current.parentElement);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (rAFRef.current) cancelAnimationFrame(rAFRef.current);
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
@@ -456,7 +490,7 @@ const AskAI = () => {
   };
 
   const handleSend = async (text: string = input) => {
-    if (!text.trim() || isLoading) return;
+    if (!text.trim()) return;
 
     const userMsg = text.trim();
     setInput('');
@@ -464,113 +498,92 @@ const AskAI = () => {
       textareaRef.current.style.height = 'auto';
     }
     
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    const streamId = Date.now();
+    activeStreamIdRef.current = streamId;
+    streamBufferRef.current = '';
+
+    if (rAFRef.current) cancelAnimationFrame(rAFRef.current);
+
     setMessages(prev => {
       const nextMessages = [...prev, { role: 'user' as const, content: userMsg }];
-      setTimeout(() => {
-        scrollToBottom();
-        if (window.innerWidth <= 768) {
-          const aiSection = document.getElementById('ask-ai');
-          if (aiSection) {
-            const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
-            if (chatContainer) {
-              chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }
-          }
-        } else {
-          const aiSection = document.getElementById('ask-ai');
-          if (aiSection) {
-            const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
-            if (chatContainer) {
-              chatContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }
-          }
-        }
-      }, 100);
-      return nextMessages;
+      return [...nextMessages, { role: 'ai' as const, content: '' }];
     });
+    
     setIsLoading(true);
 
-    // Add an empty AI message first
-    setMessages(prev => [...prev, { role: 'ai' as const, content: '' }]);
+    setTimeout(() => {
+      scrollToBottom();
+      const aiSection = document.getElementById('ask-ai');
+      const chatContainer = aiSection?.querySelector('.glass.rounded-3xl');
+      if (chatContainer) {
+        if (window.innerWidth <= 768) {
+          chatContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          const rect = chatContainer.getBoundingClientRect();
+          const scrollTop = window.scrollY || document.documentElement.scrollTop;
+          window.scrollTo({
+            top: rect.top + scrollTop - 100,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }, 50);
+
+    const updateUI = () => {
+      if (activeStreamIdRef.current === streamId) {
+        setMessages(prev => {
+          const nextMessages = [...prev];
+          const lastIdx = nextMessages.length - 1;
+          if (nextMessages[lastIdx]?.role === 'ai' && nextMessages[lastIdx].content !== streamBufferRef.current) {
+            nextMessages[lastIdx] = { ...nextMessages[lastIdx], content: streamBufferRef.current };
+            return nextMessages;
+          }
+          return prev;
+        });
+        rAFRef.current = requestAnimationFrame(updateUI);
+      }
+    };
+    rAFRef.current = requestAnimationFrame(updateUI);
 
     try {
-      const stream = aiService.askAboutMeStream(userMsg);
-      let fullContent = '';
+      const stream = aiService.askAboutMeStream(userMsg, abortController.signal);
       let isFirstChunk = true;
-      let lastUpdateTime = 0;
       
       for await (const chunk of stream) {
+        if (abortController.signal.aborted) break;
         if (isFirstChunk) {
           setIsLoading(false);
           isFirstChunk = false;
         }
-        fullContent += chunk;
-        
-        const now = Date.now();
-        if (now - lastUpdateTime > 50) {
-          setMessages(prev => {
-            const nextMessages = [...prev];
-            nextMessages[nextMessages.length - 1].content = fullContent;
-            return nextMessages;
-          });
-          scrollToBottom();
-          lastUpdateTime = now;
-        }
+        streamBufferRef.current += chunk;
       }
-      
-      // Ensure the final content is set after the loop finishes
-      setMessages(prev => {
-        const nextMessages = [...prev];
-        nextMessages[nextMessages.length - 1].content = fullContent;
-        return nextMessages;
-      });
-      scrollToBottom();
-      
-      setTimeout(() => {
-        setMessages(prev => {
-          const msgEl = document.getElementById(`message-${prev.length - 1}`);
-          if (msgEl && chatContainerRef.current) {
-            chatContainerRef.current.scrollTo({
-              top: msgEl.offsetTop - 24,
-              behavior: 'smooth'
-            });
-            if (window.innerWidth <= 768) {
-              const aiSection = document.getElementById('ask-ai');
-              if (aiSection) {
-                const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
-                if (chatContainer) {
-                  // Scroll page so the top of the chat container is visible
-                  chatContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }
-            } else {
-              const aiSection = document.getElementById('ask-ai');
-              if (aiSection) {
-                const chatContainer = aiSection.querySelector('.glass.rounded-3xl');
-                if (chatContainer) {
-                  // Scroll page so the top of the chat container is visible, offset by navbar
-                  const rect = chatContainer.getBoundingClientRect();
-                  const scrollTop = window.scrollY || document.documentElement.scrollTop;
-                  window.scrollTo({
-                    top: rect.top + scrollTop - 100,
-                    behavior: 'smooth'
-                  });
-                }
-              }
-            }
-          }
-          return prev;
-        });
-      }, 100);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError' || abortController.signal.aborted) {
+        return;
+      }
       console.error(error);
-      setMessages(prev => {
-        const nextMessages = [...prev];
-        nextMessages[nextMessages.length - 1].content = "I'm experiencing some technical difficulties. Please try again later.";
-        return nextMessages;
-      });
+      if (activeStreamIdRef.current === streamId) {
+        streamBufferRef.current = "I'm experiencing some technical difficulties. Please try again later.";
+      }
     } finally {
-      setIsLoading(false);
+      if (activeStreamIdRef.current === streamId) {
+        setIsLoading(false);
+        setMessages(prev => {
+          const nextMessages = [...prev];
+          const lastIdx = nextMessages.length - 1;
+          if (nextMessages[lastIdx]?.role === 'ai') {
+            nextMessages[lastIdx] = { ...nextMessages[lastIdx], content: streamBufferRef.current };
+          }
+          return nextMessages;
+        });
+        if (rAFRef.current) cancelAnimationFrame(rAFRef.current);
+      }
     }
   };
 
@@ -694,9 +707,9 @@ const AskAI = () => {
               <button 
                 type="button"
                 onClick={() => handleSend()}
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim()}
                 className={`absolute right-2 bottom-2 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 ${
-                  input.trim() && !isLoading 
+                  input.trim() 
                     ? 'bg-accent text-navy-950 hover:bg-white shadow-[0_0_15px_rgba(52,211,153,0.4)] animate-pulse' 
                     : 'bg-white/10 text-slate-400'
                 }`}
