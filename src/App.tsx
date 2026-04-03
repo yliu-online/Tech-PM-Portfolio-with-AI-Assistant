@@ -441,6 +441,7 @@ const AskAI = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -449,7 +450,7 @@ const AskAI = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeStreamIdRef = useRef<number>(0);
   const streamBufferRef = useRef<string>('');
-  const rAFRef = useRef<number | null>(null);
+  const flushIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const container = chatContainerRef.current;
@@ -475,7 +476,7 @@ const AskAI = () => {
 
   useEffect(() => {
     return () => {
-      if (rAFRef.current) cancelAnimationFrame(rAFRef.current);
+      if (flushIntervalRef.current) clearInterval(flushIntervalRef.current);
       abortControllerRef.current?.abort();
     };
   }, []);
@@ -508,7 +509,7 @@ const AskAI = () => {
     activeStreamIdRef.current = streamId;
     streamBufferRef.current = '';
 
-    if (rAFRef.current) cancelAnimationFrame(rAFRef.current);
+    if (flushIntervalRef.current) clearInterval(flushIntervalRef.current);
 
     setMessages(prev => {
       const nextMessages = [...prev, { role: 'user' as const, content: userMsg }];
@@ -516,6 +517,7 @@ const AskAI = () => {
     });
     
     setIsLoading(true);
+    setIsStreaming(true);
 
     setTimeout(() => {
       scrollToBottom();
@@ -541,15 +543,19 @@ const AskAI = () => {
           const nextMessages = [...prev];
           const lastIdx = nextMessages.length - 1;
           if (nextMessages[lastIdx]?.role === 'ai' && nextMessages[lastIdx].content !== streamBufferRef.current) {
-            nextMessages[lastIdx] = { ...nextMessages[lastIdx], content: streamBufferRef.current };
+            let displayContent = streamBufferRef.current;
+            const codeBlockCount = (displayContent.match(/```/g) || []).length;
+            if (codeBlockCount % 2 !== 0) {
+              displayContent += '\n```';
+            }
+            nextMessages[lastIdx] = { ...nextMessages[lastIdx], content: displayContent };
             return nextMessages;
           }
           return prev;
         });
-        rAFRef.current = requestAnimationFrame(updateUI);
       }
     };
-    rAFRef.current = requestAnimationFrame(updateUI);
+    flushIntervalRef.current = setInterval(updateUI, 80);
 
     try {
       const stream = aiService.askAboutMeStream(userMsg, abortController.signal);
@@ -574,6 +580,7 @@ const AskAI = () => {
     } finally {
       if (activeStreamIdRef.current === streamId) {
         setIsLoading(false);
+        setIsStreaming(false);
         setMessages(prev => {
           const nextMessages = [...prev];
           const lastIdx = nextMessages.length - 1;
@@ -582,7 +589,7 @@ const AskAI = () => {
           }
           return nextMessages;
         });
-        if (rAFRef.current) cancelAnimationFrame(rAFRef.current);
+        if (flushIntervalRef.current) clearInterval(flushIntervalRef.current);
       }
     }
   };
@@ -650,7 +657,7 @@ const AskAI = () => {
                 <div className={`max-w-[85%] p-4 rounded-2xl ${
                   msg.role === 'user' 
                     ? 'bg-accent text-navy-950 font-medium rounded-tr-none' 
-                    : 'bg-white/10 text-slate-200 rounded-tl-none border border-white/10'
+                    : `bg-white/10 text-slate-200 rounded-tl-none border border-white/10 ${idx === messages.length - 1 && isStreaming ? 'min-h-[120px] transition-[min-height] duration-300 ease-out' : ''}`
                 }`}>
                   <div className="markdown-body text-sm leading-relaxed">
                     <Markdown>{msg.content}</Markdown>
