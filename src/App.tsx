@@ -450,7 +450,8 @@ const AskAI = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeStreamIdRef = useRef<number>(0);
   const streamBufferRef = useRef<string>('');
-  const flushIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const flushIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentIntervalRef = useRef<number>(80);
 
   useEffect(() => {
     const container = chatContainerRef.current;
@@ -476,7 +477,7 @@ const AskAI = () => {
 
   useEffect(() => {
     return () => {
-      if (flushIntervalRef.current) clearInterval(flushIntervalRef.current);
+      if (flushIntervalRef.current) clearTimeout(flushIntervalRef.current);
       abortControllerRef.current?.abort();
     };
   }, []);
@@ -509,7 +510,7 @@ const AskAI = () => {
     activeStreamIdRef.current = streamId;
     streamBufferRef.current = '';
 
-    if (flushIntervalRef.current) clearInterval(flushIntervalRef.current);
+    if (flushIntervalRef.current) clearTimeout(flushIntervalRef.current);
 
     setMessages(prev => {
       const nextMessages = [...prev, { role: 'user' as const, content: userMsg }];
@@ -519,7 +520,7 @@ const AskAI = () => {
     setIsLoading(true);
     setIsStreaming(true);
 
-    setTimeout(() => {
+    const triggerScroll = () => {
       scrollToBottom();
       const aiSection = document.getElementById('ask-ai');
       const chatContainer = aiSection?.querySelector('.glass.rounded-3xl');
@@ -535,10 +536,29 @@ const AskAI = () => {
           });
         }
       }
-    }, 50);
+    };
+
+    if (window.visualViewport) {
+      let scrollTimeout: ReturnType<typeof setTimeout>;
+      const onResize = () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          triggerScroll();
+          window.visualViewport?.removeEventListener('resize', onResize);
+        }, 100);
+      };
+      window.visualViewport.addEventListener('resize', onResize);
+      setTimeout(() => {
+        triggerScroll();
+        window.visualViewport?.removeEventListener('resize', onResize);
+      }, 300);
+    } else {
+      setTimeout(triggerScroll, 100);
+    }
 
     const updateUI = () => {
       if (activeStreamIdRef.current === streamId) {
+        const startTime = performance.now();
         setMessages(prev => {
           const nextMessages = [...prev];
           const lastIdx = nextMessages.length - 1;
@@ -553,9 +573,19 @@ const AskAI = () => {
           }
           return prev;
         });
+        
+        const executionTime = performance.now() - startTime;
+        if (executionTime > 50) {
+          currentIntervalRef.current = Math.min(currentIntervalRef.current + 20, 200);
+        } else if (executionTime < 20) {
+          currentIntervalRef.current = Math.max(currentIntervalRef.current - 10, 50);
+        }
+        
+        flushIntervalRef.current = setTimeout(updateUI, currentIntervalRef.current);
       }
     };
-    flushIntervalRef.current = setInterval(updateUI, 80);
+    currentIntervalRef.current = 80;
+    flushIntervalRef.current = setTimeout(updateUI, 80);
 
     try {
       const stream = aiService.askAboutMeStream(userMsg, abortController.signal);
@@ -566,6 +596,9 @@ const AskAI = () => {
         if (isFirstChunk) {
           setIsLoading(false);
           isFirstChunk = false;
+          if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate(10);
+          }
         }
         streamBufferRef.current += chunk;
       }
@@ -589,7 +622,7 @@ const AskAI = () => {
           }
           return nextMessages;
         });
-        if (flushIntervalRef.current) clearInterval(flushIntervalRef.current);
+        if (flushIntervalRef.current) clearTimeout(flushIntervalRef.current);
       }
     }
   };
@@ -657,10 +690,13 @@ const AskAI = () => {
                 <div className={`max-w-[85%] p-4 rounded-2xl ${
                   msg.role === 'user' 
                     ? 'bg-accent text-navy-950 font-medium rounded-tr-none' 
-                    : `bg-white/10 text-slate-200 rounded-tl-none border border-white/10 ${idx === messages.length - 1 && isStreaming ? 'min-h-[120px] transition-[min-height] duration-300 ease-out' : ''}`
+                    : `bg-white/10 text-slate-200 rounded-tl-none border border-white/10 transform-gpu will-change-transform ${idx === messages.length - 1 && isStreaming ? 'min-h-[120px] transition-[min-height] duration-300 ease-out' : ''}`
                 }`}>
-                  <div className="markdown-body text-sm leading-relaxed">
+                  <div className="markdown-body text-sm leading-relaxed relative">
                     <Markdown>{msg.content}</Markdown>
+                    {idx === messages.length - 1 && isStreaming && (
+                      <span className="inline-block w-1.5 h-4 ml-1 bg-accent animate-pulse align-middle" />
+                    )}
                   </div>
                 </div>
               </motion.div>
