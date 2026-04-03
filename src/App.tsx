@@ -497,6 +497,7 @@ const AskAI = () => {
       const stream = aiService.askAboutMeStream(userMsg);
       let fullContent = '';
       let isFirstChunk = true;
+      let lastUpdateTime = 0;
       
       for await (const chunk of stream) {
         if (isFirstChunk) {
@@ -504,13 +505,26 @@ const AskAI = () => {
           isFirstChunk = false;
         }
         fullContent += chunk;
-        setMessages(prev => {
-          const nextMessages = [...prev];
-          nextMessages[nextMessages.length - 1].content = fullContent;
-          return nextMessages;
-        });
-        scrollToBottom();
+        
+        const now = Date.now();
+        if (now - lastUpdateTime > 50) {
+          setMessages(prev => {
+            const nextMessages = [...prev];
+            nextMessages[nextMessages.length - 1].content = fullContent;
+            return nextMessages;
+          });
+          scrollToBottom();
+          lastUpdateTime = now;
+        }
       }
+      
+      // Ensure the final content is set after the loop finishes
+      setMessages(prev => {
+        const nextMessages = [...prev];
+        nextMessages[nextMessages.length - 1].content = fullContent;
+        return nextMessages;
+      });
+      scrollToBottom();
       
       setTimeout(() => {
         setMessages(prev => {

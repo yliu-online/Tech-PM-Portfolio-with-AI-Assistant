@@ -11,14 +11,7 @@ export class AIService {
   private model: string = "gemini-3-flash-preview";
 
   constructor() {
-    const apiKey = 
-      process.env.GEMINI_API_KEY || 
-      process.env.GOOGLE_API_KEY || 
-      process.env.API_KEY || 
-      (import.meta as any).env?.VITE_GEMINI_API_KEY ||
-      (import.meta as any).env?.VITE_GOOGLE_API_KEY ||
-      "";
-    this.ai = new GoogleGenAI({ apiKey });
+    this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   }
 
   private requestCache = new Map<string, string>();
@@ -66,8 +59,6 @@ export class AIService {
       const tokens = this.tokenCache.get(question)!;
       for (const token of tokens) {
         yield token;
-        // Simulate streaming latency for cached tokens
-        await new Promise(resolve => setTimeout(resolve, 20));
       }
       return;
     }
