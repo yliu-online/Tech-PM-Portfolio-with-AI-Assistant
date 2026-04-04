@@ -435,7 +435,7 @@ const Skills = () => {
   );
 };
 
-const MessageBubble = React.memo(({ content, isStreaming, role, idx }: { content: string, isStreaming: boolean, role: 'user' | 'ai', idx: number }) => {
+const MessageBubble = React.memo(({ content, role, idx }: { content: string, role: 'user' | 'ai', idx: number }) => {
   return (
     <motion.div 
       id={`message-${idx}`}
@@ -446,29 +446,38 @@ const MessageBubble = React.memo(({ content, isStreaming, role, idx }: { content
       <div className={`max-w-[85%] p-4 rounded-2xl ${
         role === 'user' 
           ? 'bg-accent text-navy-950 font-medium rounded-tr-none' 
-          : `bg-white/10 text-slate-200 rounded-tl-none border border-white/10 transform-gpu will-change-transform ${isStreaming ? 'min-h-[120px] transition-[min-height] duration-300 ease-out' : ''}`
+          : 'bg-white/10 text-slate-200 rounded-tl-none border border-white/10'
       }`}>
+        <div className="markdown-body text-sm leading-relaxed relative">
+          <Markdown>{content}</Markdown>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
+const StreamingMessage = React.memo(({ content, idx }: { content: string, idx: number }) => {
+  return (
+    <motion.div 
+      id={`message-${idx}`}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex justify-start"
+    >
+      <div className="max-w-[85%] p-4 rounded-2xl bg-white/10 text-slate-200 rounded-tl-none border border-white/10 transform-gpu will-change-transform min-h-[120px] transition-[min-height] duration-300 ease-out">
         <div className="markdown-body text-sm leading-relaxed relative">
           {content ? (
             <>
-              {isStreaming ? (
-                <pre className="text-sm whitespace-pre-wrap font-sans m-0">
-                  {content}
-                </pre>
-              ) : (
-                <Markdown>{content}</Markdown>
-              )}
-              {isStreaming && (
-                <span className="inline-block w-1.5 h-4 ml-1 bg-accent animate-pulse align-middle" />
-              )}
+              <pre className="text-sm whitespace-pre-wrap font-sans m-0">
+                {content}
+              </pre>
+              <span className="inline-block w-1.5 h-4 ml-1 bg-accent animate-pulse align-middle" />
             </>
           ) : (
-            isStreaming && (
-              <div className="flex items-center gap-2">
-                <span className="inline-block w-1.5 h-4 bg-accent animate-pulse" />
-                <span className="text-slate-400">Yang's AI assistant is thinking...</span>
-              </div>
-            )
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-1.5 h-4 bg-accent animate-pulse" />
+              <span className="text-slate-400">Yang's AI assistant is thinking...</span>
+            </div>
           )}
         </div>
       </div>
@@ -599,13 +608,21 @@ const AskAI = () => {
       setTimeout(triggerScroll, 100);
     }
 
+    const scheduleUpdate = () => {
+      if (activeStreamIdRef.current !== streamId) return;
+      requestAnimationFrame(() => {
+        updateUI();
+      });
+    };
+
     const updateUI = () => {
       if (activeStreamIdRef.current === streamId) {
         const newLength = streamBufferRef.current.length;
         const delta = newLength - lastRenderedLengthRef.current;
+        const dynamicThreshold = Math.max(30, newLength * 0.05);
 
-        if (delta < 30 && !abortController.signal.aborted) {
-          flushIntervalRef.current = setTimeout(updateUI, currentIntervalRef.current);
+        if (delta < dynamicThreshold && !abortController.signal.aborted) {
+          flushIntervalRef.current = setTimeout(scheduleUpdate, currentIntervalRef.current);
           return;
         }
 
@@ -617,7 +634,7 @@ const AskAI = () => {
         if (codeBlockCount % 2 !== 0) {
           displayContent += '\n```';
         }
-        setStreamingContent(displayContent);
+        setStreamingContent(prev => prev !== displayContent ? displayContent : prev);
         
         const executionTime = performance.now() - startTime;
         if (executionTime > 50) {
@@ -626,12 +643,12 @@ const AskAI = () => {
           currentIntervalRef.current = Math.max(currentIntervalRef.current - 10, 150);
         }
         
-        flushIntervalRef.current = setTimeout(updateUI, currentIntervalRef.current);
+        flushIntervalRef.current = setTimeout(scheduleUpdate, currentIntervalRef.current);
       }
     };
     currentIntervalRef.current = 180;
     lastRenderedLengthRef.current = 0;
-    flushIntervalRef.current = setTimeout(updateUI, 180);
+    flushIntervalRef.current = setTimeout(scheduleUpdate, 180);
 
     try {
       const stream = aiService.askAboutMeStream(userMsg, abortController.signal);
@@ -728,12 +745,14 @@ const AskAI = () => {
           <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide relative">
             {messages.map((msg, idx) => {
               const isLast = idx === messages.length - 1;
+              if (isLast && isStreaming) {
+                return <StreamingMessage key={idx} idx={idx} content={streamingContent} />;
+              }
               return (
                 <MessageBubble
                   key={idx}
                   idx={idx}
-                  content={isLast && isStreaming ? streamingContent : msg.content}
-                  isStreaming={isLast && isStreaming}
+                  content={msg.content}
                   role={msg.role}
                 />
               );
